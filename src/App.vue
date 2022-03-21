@@ -1,28 +1,44 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+
+    <ul>
+      <li v-for="{message, index} in messages" :key="index">
+        {{message}}
+      </li>
+    </ul>
+
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Pusher from "pusher-js";
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
+
+  },
+  data: () => ({
+    messages: [],
+    }),
+  beforeMount() {
+    Pusher.logToConsole = true;
+
+    let pusher = new Pusher('94db23f60a72fb315a70', {
+      cluster: 'eu'
+    });
+
+    let channel = pusher.subscribe('my-channel');
+    channel.bind('my-event', function(data) {
+     this.messages.push(JSON.stringify(data));
+    });
+  },
+  methods: {
+
+  },
 }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+
 </style>
