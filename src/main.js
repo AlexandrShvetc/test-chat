@@ -1,18 +1,13 @@
 import Vue from 'vue'
 import App from './App.vue'
-import Vuetify from 'vuetify'
-import VueTimeago from 'vue-timeago';
-
-import Pusher from 'pusher'
+import BootstrapVue from 'bootstrap-vue'
 
 
-Vue.use(Vuetify);
-Vue.use(VueTimeago, {
-  name: 'Timeago', // Component name, `Timeago` by default
-  locale: 'en'
-});
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-Vue.use(Pusher)
+
+Vue.use(BootstrapVue)
 
 Vue.config.productionTip = false
 
