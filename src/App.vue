@@ -2,7 +2,7 @@
   <div id="app">
     <ul>
       <li v-for="(message, index) in messages" :key="index">
-        <b>{{message.message.user}}</b>
+        <b>{{ message.message.user }}</b>
         <br>
         {{ message.message.msg }}
       </li>
@@ -18,7 +18,7 @@
 
 <script>
 import Pusher from "pusher-js";
-// import qs from 'querystring';
+import qs from 'querystring';
 import uniq from 'lodash.uniq';
 // const AUTH_ENDPOINT = 'https://pusher-auth.now.sh';
 const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
@@ -43,16 +43,17 @@ export default {
       app_id: "1364833",
       secret: "bd540eabe0c92baa34b2",
       cluster: "eu",
-      // authEndpoint: '/pusher/auth',
-      // forceTLS: true,
-      // authEndpoint: `${AUTH_ENDPOINT}/auth`,
       authEndpoint: `${AUTH_ENDPOINT}/pusher/auth`,
+      auth:{
+        params:{
+          user_id: 'blabla',
+        },
+        // headers:{
+        //   user_id: 'blabla',
+        // },
+      },
       // authTransport: 'jsonp'
     });
-
-    // this.pusher.trigger("private-document", "my-event", {
-    //   message: "hello world",
-    // });
 
     this.channel = this.pusher.subscribe('private-document');
 
@@ -63,15 +64,17 @@ export default {
         ts: new Date(+obj.ts)
       });
     });
+
     this.presenceChannel
         .bind('pusher:subscription_succeeded', members => {
           const list = [];
           members.each(function (member) {
             // for example:
-            list.push(member.id);
+            console.log(member)
+            list.push({id: member.id, name: member.info.name});
           });
           this.members = list;
-          this.me = members.me.id;
+          this.me = members.me.info.name;
         })
         .bind('pusher:member_added', member => {
           this.members = uniq(this.members.concat(member.id));
@@ -102,10 +105,28 @@ export default {
         headers: {
           'Content-Type': 'application/json'
         }
+      })
+          .then(function (response) {
+            return response.json();
+          }).then(function (data) {
+        console.log(data);
+      }).catch(function () {
+        console.log("Booo");
       });
 
+      const someData = {
+        ts: Date.now(),
+        user: this.me
+      };
 
-      // fetch(`${AUTH_ENDPOINT}/pusher/auth/message?${qs.stringify(query)}`);
+      fetch(`${AUTH_ENDPOINT}/pusher/auth/?${qs.stringify(someData)}`)
+          .then(function (response) {
+            return response.json();
+          }).then(function (data) {
+        console.log(data);
+      }).catch(function () {
+        console.log("Booo");
+      });
       // // fetch(`pusher/message?${qs.stringify(query)}`);
       this.draft = '';
     }
