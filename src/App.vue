@@ -1,8 +1,8 @@
 <template>
-  <div id="app">
+  <div id="app" class="container">
     <ul>
-      <li v-for="(message, index) in messages" :key="index">
-        <b>{{ message.message.user }}</b>
+      <li v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
+        <b>{{ message.message.user.info.name }}</b>
         <br>
         {{ message.message.msg }}
       </li>
@@ -13,12 +13,26 @@
         <b-button variant="info" @click="send">Button</b-button>
       </b-input-group-append>
     </b-input-group>
+
+    <b-modal
+        id="nameAddModal"
+        :title="'ADD YOUR NICK NAME'"
+        ok-title="Save"
+        @ok="addName">
+      <form>
+        <b-form-group label="Name" label-for="Name">
+          <b-form-input id="Name" v-model="newName"/>
+        </b-form-group>
+      </form>
+    </b-modal>
+
+
   </div>
 </template>
 
 <script>
 import Pusher from "pusher-js";
-import qs from 'querystring';
+// import qs from 'querystring';
 import uniq from 'lodash.uniq';
 // const AUTH_ENDPOINT = 'https://pusher-auth.now.sh';
 const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
@@ -34,66 +48,71 @@ export default {
     pusher: null,
     channel: null,
     presenceChannel: null,
+    newName: '',
   }),
   mounted() {
-    Pusher.logToConsole = true;
-
-    this.pusher = new Pusher('94db23f60a72fb315a70', {
-      broadcaster: 'pusher',
-      app_id: "1364833",
-      secret: "bd540eabe0c92baa34b2",
-      cluster: "eu",
-      authEndpoint: `${AUTH_ENDPOINT}/pusher/auth`,
-      auth:{
-        params:{
-          user_id: 'blabla',
-        },
-        // headers:{
-        //   user_id: 'blabla',
-        // },
-      },
-      // authTransport: 'jsonp'
-    });
-
-    this.channel = this.pusher.subscribe('private-document');
-
-    this.presenceChannel = this.pusher.subscribe('presence-chat');
-    this.channel.bind('message', obj => {
-      this.messages.push({
-        ...obj,
-        ts: new Date(+obj.ts)
-      });
-    });
-
-    this.presenceChannel
-        .bind('pusher:subscription_succeeded', members => {
-          const list = [];
-          members.each(function (member) {
-            // for example:
-            console.log(member)
-            list.push({id: member.id, name: member.info.name});
-          });
-          this.members = list;
-          this.me = members.me.info.name;
-        })
-        .bind('pusher:member_added', member => {
-          this.members = uniq(this.members.concat(member.id));
-        })
-        .bind('pusher:member_removed', member => {
-          this.members = this.members.filter(m => m !== member.id);
-        });
-    this.channel.bind('pusher:subscription_succeeded', () => {
-      // this.send('makákó');
-    });
-
-
+    this.$bvModal.show('nameAddModal')
   },
   methods: {
-    send() {
-      let socketId = this.pusher.socket
+    pusherConnetcion(){
+      Pusher.logToConsole = true;
+      const timestamp = new Date().toISOString();
+      this.pusher = new Pusher('94db23f60a72fb315a70', {
+        broadcaster: 'pusher',
+        app_id: "1364833",
+        secret: "bd540eabe0c92baa34b2",
+        cluster: "eu",
+        authEndpoint: `${AUTH_ENDPOINT}/pusher/auth`,
+        auth: {
+          params: {
+            user_id: `${this.me}-${timestamp}`,
+            name: `${this.me}`
+          },
+        },
+        // authTransport: 'jsonp'
+      });
 
+      this.pusher.connection.bind("connected", () => {
+        console.log(this.pusher.connection.socket_id)
+      });
+
+      // this.channel = this.pusher.subscribe('private-document');
+
+      this.presenceChannel = this.pusher.subscribe('presence-chat');
+      this.presenceChannel.bind('message', obj => {
+        this.messages.push({
+          ...obj,
+          ts: new Date(+obj.ts)
+        });
+      });
+
+      this.presenceChannel
+          .bind('pusher:subscription_succeeded', members => {
+            const list = [];
+            members.each(function (member) {
+              // for example:
+              console.log(member)
+              list.push({id: member.id, name: member.info.name});
+            });
+            this.members = list;
+            this.me = members.me;
+          })
+          .bind('pusher:member_added', member => {
+            this.members = uniq(this.members.concat(member.id));
+          })
+          .bind('pusher:member_removed', member => {
+            this.members = this.members.filter(m => m !== member.id);
+          });
+      // this.channel.bind('pusher:subscription_succeeded', () => {
+      //   // this.send('makákó');
+      // });
+    },
+    addName(){
+      this.me = this.newName
+      this.pusherConnetcion()
+    },
+    send() {
       const query = {
-        socket_id: socketId,
         msg: this.draft,
         ts: Date.now(),
         user: this.me
@@ -114,26 +133,31 @@ export default {
         console.log("Booo");
       });
 
-      const someData = {
-        ts: Date.now(),
-        user: this.me
-      };
 
-      fetch(`${AUTH_ENDPOINT}/pusher/auth/?${qs.stringify(someData)}`)
-          .then(function (response) {
-            return response.json();
-          }).then(function (data) {
-        console.log(data);
-      }).catch(function () {
-        console.log("Booo");
-      });
-      // // fetch(`pusher/message?${qs.stringify(query)}`);
       this.draft = '';
-    }
+    },
+    // sendGetParams() {
+    //   const someData = {
+    //     ts: Date.now(),
+    //     user: this.me
+    //   };
+    //
+    /*  fetch(`${AUTH_ENDPOINT}/pusher/auth/?${qs.stringify(someData)}`)*/
+    //       .then(function (response) {
+    //         return response.json();
+    //       }).then(function (data) {
+    //     console.log(data);
+    //   }).catch(function () {
+    //     console.log("Booo");
+    //   });
+    //   // // fetch(`pusher/message?${qs.stringify(query)}`);
+    // },
   },
 }
 </script>
 
 <style>
-
+.right {
+  text-align: right;
+}
 </style>
