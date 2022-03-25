@@ -6,8 +6,8 @@
           <li v-for="member in members" :key="member.id">{{ member.name }}</li>
         </ul>
       </b-col>
-      <b-col cols="8">
-        <ul ref="scrollChat" id="chat" class="chat" style="
+      <b-col cols="8" class="chat">
+        <ul ref="scrollChat" id="chat"  style="
     height: 75%;
     max-height: 75%;
     background-color: aliceblue;">
@@ -188,8 +188,7 @@ export default {
 
 .chat {
   white-space: nowrap;
-  overflow: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 .chat li{
   white-space: normal;
