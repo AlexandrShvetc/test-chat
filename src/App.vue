@@ -1,18 +1,32 @@
 <template>
   <div id="app" class="container">
-    <ul>
-      <li v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
-        <b>{{ message.message.user.info.name }}</b>
-        <br>
-        {{ message.message.msg }}
-      </li>
-    </ul>
-    <b-input-group prepend="Message" class="mt-3">
-      <b-form-input v-model="draft"></b-form-input>
-      <b-input-group-append>
-        <b-button variant="info" @click="send">Button</b-button>
-      </b-input-group-append>
-    </b-input-group>
+    <b-row style="height: 100vh; max-height: 100vh" class="pt-3">
+      <b-col cols="4">
+        <ul>
+          <li v-for="member in members" :key="member.id">{{ member.name }}</li>
+        </ul>
+      </b-col>
+      <b-col cols="8">
+        <ul ref="scrollChat" id="chat" class="chat" style="
+    height: 75%;
+    max-height: 75%;
+    background-color: aliceblue;">
+          <li v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
+            <b>{{ message.message.user.info.name }}</b>
+            <br>
+            {{ message.message.msg }}
+          </li>
+        </ul>
+
+        <b-input-group prepend="Message" class="mt-3">
+          <b-form-input v-model="draft" @keydown.prevent.stop.enter="send"></b-form-input>
+          <b-input-group-append>
+            <b-button variant="info" @click="send">Button</b-button>
+          </b-input-group-append>
+        </b-input-group>
+      </b-col>
+    </b-row>
+
 
     <b-modal
         id="nameAddModal"
@@ -52,9 +66,12 @@ export default {
   }),
   mounted() {
     this.$bvModal.show('nameAddModal')
+    const element = document.getElementById('chat');
+    element.scrollTop = element.scrollHeight;
+    this.scrollToElement();
   },
   methods: {
-    pusherConnetcion(){
+    pusherConnetcion() {
       Pusher.logToConsole = true;
       const timestamp = new Date().toISOString();
       this.pusher = new Pusher('94db23f60a72fb315a70', {
@@ -107,7 +124,7 @@ export default {
       //   // this.send('makákó');
       // });
     },
-    addName(){
+    addName() {
       this.me = this.newName
       this.pusherConnetcion()
     },
@@ -153,11 +170,28 @@ export default {
     //   // // fetch(`pusher/message?${qs.stringify(query)}`);
     // },
   },
+  scrollToElement() {
+    const el = this.$refs.scrollChat;
+
+    if (el) {
+      // Use el.scrollIntoView() to instantly scroll to the element
+      el.scrollIntoView({behavior: 'smooth'});
+    }
+  }
 }
 </script>
 
 <style>
 .right {
   text-align: right;
+}
+
+.chat {
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-y: auto;
+}
+.chat li{
+  white-space: normal;
 }
 </style>
