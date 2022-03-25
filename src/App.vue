@@ -1,22 +1,21 @@
 <template>
   <div id="app" class="container">
-    <b-row style="height: 100vh; max-height: 100vh" class="pt-3">
+    <b-row style="flex-wrap: nowrap; height: 100vh" class="pt-3">
       <b-col cols="4">
         <ul>
           <li v-for="member in members" :key="member.id">{{ member.name }}</li>
         </ul>
       </b-col>
-      <b-col cols="8" class="chat">
-        <ul ref="scrollChat" id="chat"  style="
-    height: 75%;
-    max-height: 75%;
-    background-color: aliceblue;">
-          <li v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
-            <b>{{ message.message.user.info.name }}</b>
-            <br>
-            {{ message.message.msg }}
-          </li>
-        </ul>
+      <b-col cols="8">
+        <div class="chat" ref="scrollChat" id="chat">
+          <ul  style="">
+            <li v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
+              <b>{{ message.message.user.info.name }}</b>
+              <br>
+              {{ message.message.msg }}
+            </li>
+          </ul>
+        </div>
 
         <b-input-group prepend="Message" class="mt-3">
           <b-form-input v-model="draft" @keydown.prevent.stop.enter="send"></b-form-input>
@@ -187,10 +186,13 @@ export default {
 }
 
 .chat {
+  height: 75%;
   white-space: nowrap;
-  overflow-y: scroll;
+  overflow-y: auto;
+  background-color: aliceblue;
 }
-.chat li{
+
+.chat li {
   white-space: normal;
 }
 </style>
