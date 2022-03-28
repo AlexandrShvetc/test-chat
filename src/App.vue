@@ -7,9 +7,9 @@
         </ul>
       </b-col>
       <b-col cols="8">
-        <div class="chat" ref="scrollChat" id="chat">
-          <ul  style="">
-            <li v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
+        <div id="chat" class="chat" ref="scrollChat">
+          <ul id="scrollUl">
+            <li class="lis" v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
               <b>{{ message.message.user.info.name }}</b>
               <br>
               {{ message.message.msg }}
@@ -47,7 +47,6 @@
 import Pusher from "pusher-js";
 // import qs from 'querystring';
 import uniq from 'lodash.uniq';
-// const AUTH_ENDPOINT = 'https://pusher-auth.now.sh';
 const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
 
 export default {
@@ -65,11 +64,16 @@ export default {
   }),
   mounted() {
     this.$bvModal.show('nameAddModal')
-    const element = document.getElementById('chat');
-    element.scrollTop = element.scrollHeight;
-    this.scrollToElement();
+    // this.scrollToElement();
+  },
+  updated() {
+    this.scrollToElement()
   },
   methods: {
+    scrollToElement() {
+      const element = document.getElementById('chat');
+      element.scrollTop = element.scrollHeight;
+    },
     pusherConnetcion() {
       Pusher.logToConsole = true;
       const timestamp = new Date().toISOString();
@@ -92,14 +96,12 @@ export default {
         console.log(this.pusher.connection.socket_id)
       });
 
-      // this.channel = this.pusher.subscribe('private-document');
-
       this.presenceChannel = this.pusher.subscribe('presence-chat');
       this.presenceChannel.bind('message', obj => {
         this.messages.push({
           ...obj,
           ts: new Date(+obj.ts)
-        });
+        })
       });
 
       this.presenceChannel
@@ -114,7 +116,7 @@ export default {
             this.me = members.me;
           })
           .bind('pusher:member_added', member => {
-            this.members = uniq(this.members.concat(member.id));
+            this.members = uniq(this.members.concat({id: member.id, name: member.info.name}));
           })
           .bind('pusher:member_removed', member => {
             this.members = this.members.filter(m => m !== member.id);
@@ -169,14 +171,7 @@ export default {
     //   // // fetch(`pusher/message?${qs.stringify(query)}`);
     // },
   },
-  scrollToElement() {
-    const el = this.$refs.scrollChat;
 
-    if (el) {
-      // Use el.scrollIntoView() to instantly scroll to the element
-      el.scrollIntoView({behavior: 'smooth'});
-    }
-  }
 }
 </script>
 
@@ -194,5 +189,6 @@ export default {
 
 .chat li {
   white-space: normal;
+  word-wrap: break-word;
 }
 </style>
