@@ -18,6 +18,7 @@
     "vuetify": "^2.6.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^6.0.0",
     "@vue/cli-plugin-babel": "~4.5.15",
     "@vue/cli-plugin-eslint": "~4.5.15",
     "@vue/cli-service": "~4.5.15",

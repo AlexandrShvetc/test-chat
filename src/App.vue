@@ -2,8 +2,10 @@
   <div id="app" class="container">
     <b-row style="flex-wrap: nowrap; height: 100vh" class="pt-3">
       <b-col cols="4">
-        <ul>
-          <li v-for="member in members" :key="member.id">{{ member.name }}</li>
+        <b>Members list</b>
+        <ul class="members">
+          <li v-for="member in members" :key="member.id">
+            <img class="avatar" :src=member.avatar alt=""> {{ member.name }}</li>
         </ul>
       </b-col>
       <b-col cols="8">
@@ -13,12 +15,14 @@
               <b>{{ message.message.user.info.name }}</b>
               <br>
               {{ message.message.msg }}
+              <br>
+              <span class="time">{{message.ts }}</span>
             </li>
           </ul>
         </div>
 
         <b-input-group prepend="Message" class="mt-3">
-          <b-form-input v-model="draft" @keydown.prevent.stop.enter="send"></b-form-input>
+          <b-form-textarea v-model="draft" @keydown.prevent.stop.enter="send"></b-form-textarea>
           <b-input-group-append>
             <b-button variant="info" @click="send">Button</b-button>
           </b-input-group-append>
@@ -44,6 +48,7 @@
 </template>
 
 <script>
+import {faker} from '@faker-js/faker'
 import Pusher from "pusher-js";
 // import qs from 'querystring';
 import uniq from 'lodash.uniq';
@@ -98,9 +103,11 @@ export default {
 
       this.presenceChannel = this.pusher.subscribe('presence-chat');
       this.presenceChannel.bind('message', obj => {
+        console.log(obj)
+        // const newDate = new Date(+obj.ts).toDateString()
         this.messages.push({
           ...obj,
-          ts: new Date(+obj.ts)
+          ts: new Date(obj.message.ts).toUTCString(),
         })
       });
 
@@ -110,7 +117,7 @@ export default {
             members.each(function (member) {
               // for example:
               console.log(member)
-              list.push({id: member.id, name: member.info.name});
+              list.push({id: member.id, name: member.info.name, avatar: faker.image.avatar()});
             });
             this.members = list;
             this.me = members.me;
@@ -176,8 +183,27 @@ export default {
 </script>
 
 <style>
+li {
+  list-style-type: none;
+}
+.chat{
+  position: relative;
+}
+
+.lis{
+  position: relative;
+  max-width: 80%;
+  width: auto;
+  min-width: 0;
+  background-color: lavender;
+  border-radius: 10px;
+}
+
 .right {
+  left: 20%;
   text-align: right;
+  background-color: greenyellow;
+
 }
 
 .chat {
@@ -186,9 +212,29 @@ export default {
   overflow-y: auto;
   background-color: aliceblue;
 }
+.chat ul{
+  padding: 15px 10px;
+}
 
 .chat li {
   white-space: normal;
   word-wrap: break-word;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+}
+.time{
+  font-size: 10px;
+}
+.avatar{
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+}
+.members{
+  padding: 0;
+}
+.members li{
+  padding: 5px;
+  margin-bottom: 5px;
 }
 </style>
