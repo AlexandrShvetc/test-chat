@@ -6,31 +6,99 @@
       <hr>
 
       <label for="nick-name"><b>Nick Name</b></label>
-      <input id="nick-name" type="text" placeholder="Enter Name" name="nick-name" required>
+      <input v-model="nickName" id="nick-name" type="text" placeholder="Enter Name" name="nick-name" required>
 
       <label for="email"><b>Email</b></label>
-      <input id="email" type="text" placeholder="Enter Email" name="email" required>
+      <input v-model="email" id="email" type="text" placeholder="Enter Email" name="email" required>
 
       <label for="psw"><b>Password</b></label>
-      <input id="psw" type="password" placeholder="Enter Password" name="psw" required>
+      <input v-model="password" id="psw" type="password" placeholder="Enter Password" name="psw" required>
 
       <label for="psw-repeat"><b>Repeat Password</b></label>
-      <input id="psw-repeat" type="password" placeholder="Repeat Password" name="psw-repeat" required>
+      <input v-model="passwordRepeat" id="psw-repeat" type="password" placeholder="Repeat Password" name="psw-repeat"
+             required>
       <hr>
       <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
 
-      <button type="submit" class="registerbtn">Register</button>
+      <button type="submit" class="registerbtn" @click.stop.prevent="sendData">Register</button>
     </div>
 
     <div class="container signin">
-      <p>Already have an account? <router-link to="/"><a href="#">Sign in</a></router-link>.</p>
+      <p>Already have an account?
+        <router-link to="/"><a href="#">Sign in</a></router-link>
+        .
+      </p>
     </div>
   </form>
 </template>
 
 <script>
+import {faker} from '@faker-js/faker'
+
+const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
+
+
 export default {
-  name: "VRegistration"
+  name: "VRegistration",
+  data: () => ({
+    id: '',
+    nickName: '',
+    email: '',
+    password: '',
+    passwordRepeat: '',
+    answer: '',
+  }),
+  mounted() {
+  },
+  computed: {},
+  methods: {
+    async getServerAnswer(query) {
+      let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/signing`, {
+        method: 'POST', // или 'PUT'
+        // mode: 'no-cors',
+        body: JSON.stringify(query), // данные могут быть 'строкой' или {объектом}!
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      this.answer = await response.json();
+    },
+    checkUser: function () {
+      if (typeof this.answer['err'] !== 'undefined') {
+        return alert(this.answer.err)
+      }
+      this.nickName = '';
+      this.email = '';
+      this.password = '';
+      this.passwordRepeat = '';
+      this.$router.push({name: 'chat', params: {id: this.answer.id, user: this.answer.name}});
+    },
+    async sendData() {
+      if (this.nickName === '')
+        return alert('ви не ввели імя')
+      if (this.email === '')
+        return alert('ви не ввели пошту')
+      if (this.password === '')
+        return alert('ви не ввели пароль')
+      if (this.passwordRepeat === '')
+        return alert('ви не поторили парооль')
+      if (this.passwordRepeat !== this.password) {
+        this.passwordRepeat = ''
+        return alert('пароль не співпадає')
+      }
+      const query = {
+        id: faker.datatype.uuid(),
+        name: this.nickName,
+        email: this.email,
+        password: this.password,
+      };
+
+      await this.getServerAnswer(query)
+
+      // setTimeout(this.checkUser, 2000)
+      this.checkUser()
+    },
+  },
 }
 </script>
 

@@ -31,17 +31,17 @@
     </b-row>
 
 
-    <b-modal
-        id="nameAddModal"
-        :title="'ADD YOUR NICK NAME'"
-        ok-title="Save"
-        @ok="addName">
-      <form>
-        <b-form-group label="Name" label-for="Name">
-          <b-form-input id="Name" v-model="newName"/>
-        </b-form-group>
-      </form>
-    </b-modal>
+<!--    <b-modal-->
+<!--        id="nameAddModal"-->
+<!--        :title="'ADD YOUR NICK NAME'"-->
+<!--        ok-title="Save"-->
+<!--        @ok="addName">-->
+<!--      <form>-->
+<!--        <b-form-group label="Name" label-for="Name">-->
+<!--          <b-form-input id="Name" v-model="newName"/>-->
+<!--        </b-form-group>-->
+<!--      </form>-->
+<!--    </b-modal>-->
   </div>
 </template>
 
@@ -56,7 +56,7 @@ export default {
   name: "VChat",
   components: {},
   data: () => ({
-    me: null,
+    me: {},
     members: [],
     messages: [],
     draft: '',
@@ -65,9 +65,13 @@ export default {
     presenceChannel: null,
     newName: '',
   }),
+  created() {
+    this.me.id = this.$route.params.id;
+    this.me.name = this.$route.params.user
+  },
   mounted() {
-    this.$bvModal.show('nameAddModal')
-    // this.scrollToElement();
+    this.pusherConnetcion()
+    // this.$bvModal.show('nameAddModal')
   },
   updated() {
     this.scrollToElement()
@@ -79,7 +83,7 @@ export default {
     },
     pusherConnetcion() {
       Pusher.logToConsole = true;
-      const timestamp = new Date().toISOString();
+      // const timestamp = new Date().toISOString();
       this.pusher = new Pusher('94db23f60a72fb315a70', {
         broadcaster: 'pusher',
         app_id: "1364833",
@@ -88,8 +92,8 @@ export default {
         authEndpoint: `${AUTH_ENDPOINT}/pusher/auth`,
         auth: {
           params: {
-            user_id: `${this.me}-${timestamp}`,
-            name: `${this.me}`
+            user_id: `${this.me.id}`,
+            name: `${this.me.name}`
           },
         },
         // authTransport: 'jsonp'
@@ -130,10 +134,12 @@ export default {
       //   // this.send('makákó');
       // });
     },
-    addName() {
-      this.me = this.newName
-      this.pusherConnetcion()
-    },
+    // addName() {
+    //   this.me = this.newName
+    //   this.pusherConnetcion()
+    // },
+
+
     send() {
       const query = {
         msg: this.draft,

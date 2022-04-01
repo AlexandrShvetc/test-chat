@@ -15,7 +15,7 @@ export default [
         component: VRegistration
     },
     {
-        path: '/chat',
+        path: '/chat/:id/:user',
         name: 'chat',
         component: VChat
     },
