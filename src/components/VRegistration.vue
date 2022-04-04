@@ -63,7 +63,7 @@ export default {
       })
       this.answer = await response.json();
     },
-    checkUser: function () {
+    checkUser() {
       if (typeof this.answer['err'] !== 'undefined') {
         return alert(this.answer.err)
       }

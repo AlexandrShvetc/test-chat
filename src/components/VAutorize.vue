@@ -3,9 +3,9 @@
     <form>
       <div class="row">
         <h2 style="text-align:center">Login</h2>
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <router-link class="btn"  to="chat"><input type="submit" value="Login"></router-link>
+        <input type="text" v-model="email" name="email" placeholder="email" required>
+        <input type="password" v-model="password" name="password" placeholder="Password" required>
+        <input type="submit" value="Login" @click.stop.prevent="sendData">
       </div>
     </form>
     <div class="bottom-container">
@@ -19,9 +19,50 @@
 </template>
 
 <script>
+const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
+
 export default {
   name: "VAutorize",
+  data: () => ({
+    email: '',
+    password: '',
+    answer: '',
+  }),
+  methods: {
+    async getServerAnswer(query) {
+      let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/login`, {
+        method: 'POST', // или 'PUT'
+        // mode: 'no-cors',
+        body: JSON.stringify(query), // данные могут быть 'строкой' или {объектом}!
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      this.answer = await response.json();
+    },
 
+    checkUser() {
+      if (typeof this.answer['err'] !== 'undefined') {
+        return alert(this.answer.err)
+      }
+      this.email = '';
+      this.password = '';
+      this.$router.push({name: 'chat', params: {id: this.answer.id, user: this.answer.name}});
+    },
+
+   async sendData() {
+     if (this.email === '')
+       return alert('ви не ввели логін')
+     if (this.password === '')
+       return alert('ви не ввели пароль')
+     const query = {
+       email: this.email,
+       password: this.password,
+     };
+     await this.getServerAnswer(query);
+     this.checkUser()
+    },
+  },
 }
 </script>
 

@@ -1,22 +1,24 @@
 <template>
   <div class="container">
-    <b-row style="flex-wrap: nowrap; height: 100vh" class="pt-3">
+    <b-row style="flex-wrap: nowrap; height: 90vh" class="">
       <b-col cols="4">
         <b>Members list</b>
         <ul class="members">
           <li v-for="member in members" :key="member.id">
-            <img class="avatar" :src=member.avatar alt=""> {{ member.name }}</li>
+            <img class="avatar" :src=member.avatar alt=""> {{ member.name }}
+          </li>
         </ul>
       </b-col>
       <b-col cols="8">
         <div id="chat" class="chat" ref="scrollChat">
           <ul id="scrollUl">
-            <li class="lis" v-for="(message, index) in messages" :key="index" :class="{ right: message.message.user.id === me.id}">
+            <li class="lis" v-for="(message, index) in messages" :key="index"
+                :class="{ right: message.message.user.id === me.id}">
               <b>{{ message.message.user.info.name }}</b>
               <br>
               {{ message.message.msg }}
               <br>
-              <span class="time">{{message.ts }}</span>
+              <span class="time">{{ message.ts }}</span>
             </li>
           </ul>
         </div>
@@ -31,17 +33,17 @@
     </b-row>
 
 
-<!--    <b-modal-->
-<!--        id="nameAddModal"-->
-<!--        :title="'ADD YOUR NICK NAME'"-->
-<!--        ok-title="Save"-->
-<!--        @ok="addName">-->
-<!--      <form>-->
-<!--        <b-form-group label="Name" label-for="Name">-->
-<!--          <b-form-input id="Name" v-model="newName"/>-->
-<!--        </b-form-group>-->
-<!--      </form>-->
-<!--    </b-modal>-->
+    <!--    <b-modal-->
+    <!--        id="nameAddModal"-->
+    <!--        :title="'ADD YOUR NICK NAME'"-->
+    <!--        ok-title="Save"-->
+    <!--        @ok="addName">-->
+    <!--      <form>-->
+    <!--        <b-form-group label="Name" label-for="Name">-->
+    <!--          <b-form-input id="Name" v-model="newName"/>-->
+    <!--        </b-form-group>-->
+    <!--      </form>-->
+    <!--    </b-modal>-->
   </div>
 </template>
 
@@ -50,6 +52,7 @@ import {faker} from '@faker-js/faker'
 import Pusher from "pusher-js";
 // import qs from 'querystring';
 import uniq from 'lodash.uniq';
+
 const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
 
 export default {
@@ -59,6 +62,7 @@ export default {
     me: {},
     members: [],
     messages: [],
+    testMessages: '',
     draft: '',
     pusher: null,
     channel: null,
@@ -66,12 +70,14 @@ export default {
     newName: '',
   }),
   created() {
+
     this.me.id = this.$route.params.id;
     this.me.name = this.$route.params.user
   },
   mounted() {
     this.pusherConnetcion()
     // this.$bvModal.show('nameAddModal')
+    this.getMessages()
   },
   updated() {
     this.scrollToElement()
@@ -130,6 +136,7 @@ export default {
           .bind('pusher:member_removed', member => {
             this.members = this.members.filter(m => m !== member.id);
           });
+      // this.getMessages()
       // this.channel.bind('pusher:subscription_succeeded', () => {
       //   // this.send('makákó');
       // });
@@ -165,22 +172,26 @@ export default {
 
       this.draft = '';
     },
-    // sendGetParams() {
-    //   const someData = {
-    //     ts: Date.now(),
-    //     user: this.me
-    //   };
-    //
-    /*  fetch(`${AUTH_ENDPOINT}/pusher/auth/?${qs.stringify(someData)}`)*/
-    //       .then(function (response) {
-    //         return response.json();
-    //       }).then(function (data) {
-    //     console.log(data);
-    //   }).catch(function () {
-    //     console.log("Booo");
-    //   });
-    //   // // fetch(`pusher/message?${qs.stringify(query)}`);
-    // },
+    async getMessages() {
+      let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/messages`,{
+        method: 'POST', // или 'PUT'
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      this.testMessages = await response.json();
+      for (let oldMessage of this.testMessages){
+        let message = {
+          msg: oldMessage.msg,
+          ts: oldMessage.ts,
+          user: oldMessage.user,
+        }
+        this.messages.push({
+          message,
+          ts: new Date(oldMessage.ts).toUTCString(),
+        })
+      }
+    },
   },
 
 }
@@ -190,11 +201,12 @@ export default {
 li {
   list-style-type: none;
 }
-.chat{
+
+.chat {
   position: relative;
 }
 
-.lis{
+.lis {
   position: relative;
   max-width: 80%;
   width: auto;
@@ -216,7 +228,8 @@ li {
   overflow-y: auto;
   background-color: aliceblue;
 }
-.chat ul{
+
+.chat ul {
   padding: 15px 10px;
 }
 
@@ -226,18 +239,22 @@ li {
   padding: 5px 10px;
   margin-bottom: 5px;
 }
-.time{
+
+.time {
   font-size: 10px;
 }
-.avatar{
+
+.avatar {
   width: 50px;
   height: 50px;
   border-radius: 50px;
 }
-.members{
+
+.members {
   padding: 0;
 }
-.members li{
+
+.members li {
   padding: 5px;
   margin-bottom: 5px;
 }
