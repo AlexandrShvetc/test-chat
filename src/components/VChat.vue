@@ -18,7 +18,10 @@
               <br>
               {{ message.message.msg }}
               <br>
-              <span class="time">{{ message.ts }}</span>
+              <span class="time">
+                <timeago :datetime="message.ts" :auto-update="20"/>
+                <span class="my-tooltip">{{ message.ts }}</span>
+              </span>
             </li>
           </ul>
         </div>
@@ -26,24 +29,12 @@
         <b-input-group prepend="Message" class="mt-3">
           <b-form-textarea v-model="draft" @keydown.prevent.stop.enter="send"></b-form-textarea>
           <b-input-group-append>
-            <b-button variant="info" @click="send">Button</b-button>
+            <b-button variant="info" class="sendmsg" @click="send">Send</b-button>
           </b-input-group-append>
         </b-input-group>
       </b-col>
     </b-row>
 
-
-    <!--    <b-modal-->
-    <!--        id="nameAddModal"-->
-    <!--        :title="'ADD YOUR NICK NAME'"-->
-    <!--        ok-title="Save"-->
-    <!--        @ok="addName">-->
-    <!--      <form>-->
-    <!--        <b-form-group label="Name" label-for="Name">-->
-    <!--          <b-form-input id="Name" v-model="newName"/>-->
-    <!--        </b-form-group>-->
-    <!--      </form>-->
-    <!--    </b-modal>-->
   </div>
 </template>
 
@@ -51,7 +42,6 @@
 import {faker} from '@faker-js/faker'
 import Pusher from "pusher-js";
 // import qs from 'querystring';
-import uniq from 'lodash.uniq';
 
 const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
 
@@ -62,6 +52,7 @@ export default {
     me: {},
     members: [],
     messages: [],
+    tooltip: {},
     testMessages: '',
     draft: '',
     pusher: null,
@@ -69,15 +60,18 @@ export default {
     presenceChannel: null,
     newName: '',
   }),
+  beforeCreate() {
+    // this.getMessages(this.messages.length)
+  },
   created() {
-
     this.me.id = this.$route.params.id;
     this.me.name = this.$route.params.user
+    this.getMessages(this.messages.length)
   },
   mounted() {
     this.pusherConnetcion()
-    // this.$bvModal.show('nameAddModal')
-    this.getMessages()
+    this.updateByScroll()
+    // this.scrollToElement()
   },
   updated() {
     this.scrollToElement()
@@ -112,11 +106,12 @@ export default {
       this.presenceChannel = this.pusher.subscribe('presence-chat');
       this.presenceChannel.bind('message', obj => {
         console.log(obj)
-        // const newDate = new Date(+obj.ts).toDateString()
         this.messages.push({
           ...obj,
-          ts: new Date(obj.message.ts).toUTCString(),
+          ts: new Date(+obj.message.ts)
+          // ts: new Date(obj.message.ts).toUTCString(),
         })
+        // this.scrollToElement()
       });
 
       this.presenceChannel
@@ -131,21 +126,16 @@ export default {
             this.me = members.me;
           })
           .bind('pusher:member_added', member => {
-            this.members = uniq(this.members.concat({id: member.id, name: member.info.name}));
+            const isMember = this.members.findIndex(item => item.id === member.id)
+            if (isMember === -1)
+              this.members.push({id: member.id, name: member.info.name, avatar: faker.image.avatar()})
           })
           .bind('pusher:member_removed', member => {
-            this.members = this.members.filter(m => m !== member.id);
+            const isMember = this.members.findIndex(item => item.id === member.id)
+            if (isMember !== -1)
+              this.members.splice(isMember, 1)
           });
-      // this.getMessages()
-      // this.channel.bind('pusher:subscription_succeeded', () => {
-      //   // this.send('makákó');
-      // });
     },
-    // addName() {
-    //   this.me = this.newName
-    //   this.pusherConnetcion()
-    // },
-
 
     send() {
       const query = {
@@ -168,29 +158,43 @@ export default {
       }).catch(function () {
         console.log("Booo");
       });
-
-
       this.draft = '';
+      // this.scrollToElement()
     },
-    async getMessages() {
-      let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/messages`,{
+
+    async getMessages(number) {
+      const query = {
+        qtty: number
+      }
+      let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/messages`, {
         method: 'POST', // или 'PUT'
+        body: JSON.stringify(query),
         headers: {
           'Content-Type': 'application/json'
         }
       })
       this.testMessages = await response.json();
-      for (let oldMessage of this.testMessages){
+      for (let oldMessage of this.testMessages) {
         let message = {
           msg: oldMessage.msg,
           ts: oldMessage.ts,
           user: oldMessage.user,
         }
-        this.messages.push({
+        this.messages.unshift({
           message,
           ts: new Date(oldMessage.ts).toUTCString(),
         })
       }
+    },
+
+    updateByScroll() {
+      const scrollEl = document.getElementById('chat')
+      scrollEl.addEventListener('scroll', () => {
+        let scrollPosition = scrollEl.scrollTop
+        if (scrollPosition === 0)
+          this.getMessages(this.messages.length)
+        // console.log(scrollEl.scrollTop)
+      })
     },
   },
 
@@ -242,6 +246,22 @@ li {
 
 .time {
   font-size: 10px;
+  position: relative;
+  cursor: pointer;
+}
+.my-tooltip{
+  visibility: hidden;
+  position: absolute;
+  top: -13px;
+  left: -100%;
+  z-index: -1;
+  background-color: #f2f2f2;
+
+}
+.time:hover .my-tooltip{
+  visibility: visible;
+  opacity: 1;
+  z-index: 1;
 }
 
 .avatar {
@@ -257,5 +277,9 @@ li {
 .members li {
   padding: 5px;
   margin-bottom: 5px;
+}
+
+.sendmsg {
+  margin: 0;
 }
 </style>

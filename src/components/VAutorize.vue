@@ -1,18 +1,20 @@
 <template>
   <div class="container">
-    <form>
-      <div class="row">
-        <h2 style="text-align:center">Login</h2>
-        <input type="text" v-model="email" name="email" placeholder="email" required>
-        <input type="password" v-model="password" name="password" placeholder="Password" required>
-        <input type="submit" value="Login" @click.stop.prevent="sendData">
-      </div>
-    </form>
-    <div class="bottom-container">
-      <div class="row">
-        <div class="col">
-          <router-link to="registration"><a href="#" style="color:white" class="btn">Sign up</a></router-link>
+    <div class="content">
+      <form>
+        <div class="row">
+          <h2 style="text-align:center">Login</h2>
+          <input type="text" v-model="email" name="email" placeholder="email" required>
+          <input type="password" v-model="password" name="password" placeholder="Password" required>
+          <input type="submit" class="login" value="Login" @click.stop.prevent="sendData">
         </div>
+      </form>
+      <div class="bottom-container">
+        <!--      <div class="row">-->
+        <!--        <div class="col">-->
+        <router-link to="registration"><a href="#" style="color:white" class="btn">Sign up</a></router-link>
+        <!--        </div>-->
+        <!--      </div>-->
       </div>
     </div>
   </div>
@@ -50,23 +52,27 @@ export default {
       this.$router.push({name: 'chat', params: {id: this.answer.id, user: this.answer.name}});
     },
 
-   async sendData() {
-     if (this.email === '')
-       return alert('ви не ввели логін')
-     if (this.password === '')
-       return alert('ви не ввели пароль')
-     const query = {
-       email: this.email,
-       password: this.password,
-     };
-     await this.getServerAnswer(query);
-     this.checkUser()
+    async sendData() {
+      if (this.email === '')
+        return alert('ви не ввели логін')
+      if (this.password === '')
+        return alert('ви не ввели пароль')
+      const query = {
+        email: this.email,
+        password: this.password,
+      };
+      await this.getServerAnswer(query);
+      this.checkUser()
     },
   },
 }
 </script>
 
 <style>
+.content{
+  margin: auto;
+  max-width: 60%;
+}
 /* style the container */
 .container {
   position: relative;
@@ -121,8 +127,12 @@ input[type=submit]:hover {
 }
 
 .bottom-container {
+  margin: 0 -15px;
   text-align: center;
   background-color: #666;
   border-radius: 0 0 4px 4px;
+}
+.login{
+  border-radius: 4px 4px 0 0;
 }
 </style>

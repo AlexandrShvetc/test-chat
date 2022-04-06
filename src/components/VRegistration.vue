@@ -1,35 +1,39 @@
 <template>
-  <form>
-    <div class="container">
-      <h1>Register</h1>
-      <p>Please fill in this form to create an account.</p>
-      <hr>
+  <div class="content">
+    <form>
+      <div class="container">
+        <h1>Register</h1>
+        <p>Please fill in this form to create an account.</p>
+        <hr>
 
-      <label for="nick-name"><b>Nick Name</b></label>
-      <input v-model="nickName" id="nick-name" type="text" placeholder="Enter Name" name="nick-name" required>
+        <label for="nick-name"><b>Nick Name</b></label>
+        <input v-model="nickName" id="nick-name" type="text" placeholder="Enter Name" name="nick-name" required>
 
-      <label for="email"><b>Email</b></label>
-      <input v-model="email" id="email" type="text" placeholder="Enter Email" name="email" required>
+        <label for="email"><b>Email</b></label>
+        <input v-model="email" id="email" type="text" placeholder="Enter Email" name="email" required>
 
-      <label for="psw"><b>Password</b></label>
-      <input v-model="password" id="psw" type="password" placeholder="Enter Password" name="psw" required>
+        <label for="psw"><b>Password</b></label>
+        <input v-model="password" id="psw" type="password" placeholder="Enter Password" name="psw" required>
 
-      <label for="psw-repeat"><b>Repeat Password</b></label>
-      <input v-model="passwordRepeat" id="psw-repeat" type="password" placeholder="Repeat Password" name="psw-repeat"
-             required>
-      <hr>
-      <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
+        <label for="psw-repeat"><b>Repeat Password</b></label>
+        <input v-model="passwordRepeat" id="psw-repeat" type="password" placeholder="Repeat Password" name="psw-repeat"
+               required>
+        <hr>
+        <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
 
-      <button type="submit" class="registerbtn" @click.stop.prevent="sendData">Register</button>
-    </div>
+        <button type="submit" class="registerbtn" @click.stop.prevent="sendData">Register</button>
+      </div>
 
-    <div class="container signin">
-      <p>Already have an account?
-        <router-link to="/"><a href="#">Sign in</a></router-link>
-        .
-      </p>
-    </div>
-  </form>
+      <div class="container ">
+        <div class="signin">
+          <p>Already have an account?
+            <router-link to="/"><a href="#">Sign in</a></router-link>
+            .
+          </p>
+        </div>
+      </div>
+    </form>
+  </div>
 </template>
 
 <script>
@@ -103,6 +107,10 @@ export default {
 </script>
 
 <style>
+.content {
+  max-width: 80%;
+  margin: auto;
+}
 
 /* Add padding to containers */
 .container {
@@ -133,11 +141,15 @@ hr {
 
 /* Set a style for the submit button */
 .registerbtn {
+  justify-content: center;
+  display: flex;
+  max-width: 60%;
   background-color: #4CAF50;
   color: white;
   padding: 16px 20px;
-  margin: 8px 0;
+  margin: auto;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
   width: 100%;
   opacity: 0.9;
@@ -156,5 +168,10 @@ a {
 .signin {
   background-color: #f1f1f1;
   text-align: center;
+  padding: 0 15px;
+  border-radius: 4px;
+}
+.signin p{
+  padding: 15px 0;
 }
 </style>
