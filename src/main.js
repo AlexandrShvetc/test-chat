@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-import BootstrapVue from 'bootstrap-vue'
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import Vuetify from 'vuetify';
 import VueTimeago from 'vue-timeago';
 
@@ -10,7 +10,8 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 
-Vue.use(BootstrapVue)
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
 Vue.use(Vuetify);
 Vue.use(VueTimeago, {
   name: 'Timeago', // Component name, `Timeago` by default

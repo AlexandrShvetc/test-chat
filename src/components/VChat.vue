@@ -2,6 +2,13 @@
   <div class="container">
     <b-row style="flex-wrap: nowrap; height: 90vh" class="">
       <b-col cols="4">
+        <b>It`s ME</b>
+        <br>
+        <span> <img class="avatar" :src=me.avatar alt="">
+          {{ me.name }}
+          <button @click.stop.prevent="showModal"><b-icon-pencil></b-icon-pencil></button>
+        </span>
+        <br>
         <b>Members list</b>
         <ul class="members">
           <li v-for="member in members" :key="member.id">
@@ -14,7 +21,7 @@
           <ul id="scrollUl">
             <li class="lis" v-for="(message, index) in messages" :key="index"
                 :class="{ right: message.message.user.id === me.id}">
-              <b>{{ message.message.user.info.name }}</b>
+              <b>{{ message.message.user.name }}</b>
               <br>
               {{ message.message.msg }}
               <br>
@@ -26,14 +33,33 @@
           </ul>
         </div>
 
-        <b-input-group prepend="Message" class="mt-3">
-          <b-form-textarea v-model="draft" @keydown.prevent.stop.enter="send"></b-form-textarea>
+        <b-input-group class="mt-3">
+          <b-form-textarea placeholder="enter your message" v-model="draft"
+                           @keydown.prevent.stop.enter="send"></b-form-textarea>
           <b-input-group-append>
             <b-button variant="info" class="sendmsg" @click="send">Send</b-button>
           </b-input-group-append>
         </b-input-group>
       </b-col>
     </b-row>
+
+    <b-modal
+        id="editUser"
+        :title="'EDIT USER NAME'"
+        ok-title="Save"
+        @ok="sendNewName">
+      <form>
+        <b-form-group
+            label="Name"
+            label-for="name"
+        >
+          <b-form-input
+              id="name"
+              v-model="newName"
+          />
+        </b-form-group>
+      </form>
+    </b-modal>
 
   </div>
 </template>
@@ -59,23 +85,39 @@ export default {
     channel: null,
     presenceChannel: null,
     newName: '',
+    answer: '',
   }),
   beforeCreate() {
     // this.getMessages(this.messages.length)
   },
   created() {
     this.me.id = this.$route.params.id;
-    this.me.name = this.$route.params.user
-    this.getMessages(this.messages.length)
+    this.me.name = this.$route.params.user;
+    this.me.avatar = faker.image.avatar();
+    // this.getMessages(this.messages.length)
   },
   mounted() {
+    this.getMessages(this.messages.length)
     this.pusherConnetcion()
     this.updateByScroll()
     // this.scrollToElement()
   },
-  updated() {
-    this.scrollToElement()
+  beforeUpdate() {
+    // this.me.name = this.$route.params.user;
+    // this.scrollToElement()
   },
+  // beforeRouteUpdate(){
+  //   this.me.name = this.$route.params.user;
+  // },
+  // watch: {
+  //   '$route.params.user': {
+  //     handler: function (user) {
+  //       this.me.name = user
+  //     },
+  //     deep: true,
+  //     immediate: true
+  //   }
+  // },
   methods: {
     scrollToElement() {
       const element = document.getElementById('chat');
@@ -96,7 +138,6 @@ export default {
             name: `${this.me.name}`
           },
         },
-        // authTransport: 'jsonp'
       });
 
       this.pusher.connection.bind("connected", () => {
@@ -111,7 +152,7 @@ export default {
           ts: new Date(+obj.message.ts)
           // ts: new Date(obj.message.ts).toUTCString(),
         })
-        // this.scrollToElement()
+        setTimeout(this.scrollToElement, 1000)
       });
 
       this.presenceChannel
@@ -120,14 +161,14 @@ export default {
             members.each(function (member) {
               // for example:
               console.log(member)
-              list.push({id: member.id, name: member.info.name, avatar: faker.image.avatar()});
+              if (member.id !== members.me.id)
+                list.push({id: member.id, name: member.info.name, avatar: faker.image.avatar()});
             });
             this.members = list;
-            this.me = members.me;
           })
           .bind('pusher:member_added', member => {
             const isMember = this.members.findIndex(item => item.id === member.id)
-            if (isMember === -1)
+            if (isMember === -1 && member.id !== this.me.id)
               this.members.push({id: member.id, name: member.info.name, avatar: faker.image.avatar()})
           })
           .bind('pusher:member_removed', member => {
@@ -163,6 +204,8 @@ export default {
     },
 
     async getMessages(number) {
+      const scrollEl = document.getElementById('chat')
+      console.log(scrollEl.scrollHeight)
       const query = {
         qtty: number
       }
@@ -185,17 +228,68 @@ export default {
           ts: new Date(oldMessage.ts).toUTCString(),
         })
       }
+      if (number === 0)
+        return setTimeout(this.scrollToElement, 1000)
+      console.log(scrollEl.scrollHeight)
     },
 
-    updateByScroll() {
+    async updateByScroll() {
       const scrollEl = document.getElementById('chat')
       scrollEl.addEventListener('scroll', () => {
         let scrollPosition = scrollEl.scrollTop
-        if (scrollPosition === 0)
+        if (scrollPosition === 0) {
           this.getMessages(this.messages.length)
+          // console.log(scrollEl.scrollTop, this.messages.length)
+        }
         // console.log(scrollEl.scrollTop)
       })
     },
+
+    showModal() {
+      this.$bvModal.show('editUser')
+    },
+
+    async setNewName() {
+      this.me.name = await this.answer.value.name
+    },
+
+    async sendNewName() {
+      const query = {
+        id: this.me.id,
+        newName: this.newName,
+      };
+      let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/edituser`, {
+        method: 'POST', // или 'PUT'
+        // mode: 'no-cors',
+        body: JSON.stringify(query), // данные могут быть 'строкой' или {объектом}!
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      this.answer = await response.json();
+      if (typeof this.answer['err'] !== 'undefined') {
+        return alert(this.answer.err)
+      } else {
+        // this.me.name = await this.answer.value.name
+        await this.$router.replace({params: {id: this.me.id, user: this.answer.value.name}});
+        this.$router.go(0);
+
+        // setTimeout(this.setNewName, 1000)
+        // this.me.name = await this.answer.value.name
+        // this.$nextTick(() => {
+        //   // this.me.name = this.answer.value.name
+        //   this.setNewName()
+        // });
+        // await this.$router.replace({params: {id: this.me.id, user: this.me.name}});
+        //   let url = new URL(window.location)
+        //   let params = new URLSearchParams(url.search)
+        //   params.set(``, `${this.me.name}`);
+        //   url.search = params
+        //   history.replaceState({}, '', url)
+      }
+
+    },
+
   },
 
 }
@@ -249,7 +343,8 @@ li {
   position: relative;
   cursor: pointer;
 }
-.my-tooltip{
+
+.my-tooltip {
   visibility: hidden;
   position: absolute;
   top: -13px;
@@ -258,7 +353,8 @@ li {
   background-color: #f2f2f2;
 
 }
-.time:hover .my-tooltip{
+
+.time:hover .my-tooltip {
   visibility: visible;
   opacity: 1;
   z-index: 1;
