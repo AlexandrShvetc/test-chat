@@ -23,8 +23,8 @@
                 :class="{ right: message.message.user.id === me.id}">
               <span>
                 <span class="hide">
-                  <button ><b-icon-pen></b-icon-pen></button>
-                <button ><b-icon-trash></b-icon-trash></button>
+                  <button @click.stop.prevent=""><b-icon-pen></b-icon-pen></button>
+                <button @click.stop.prevent="deleteMessage(message.message._id)"><b-icon-trash></b-icon-trash></button>
                 </span>
                 <b class="my-order">{{ message.message.user.name }}</b><img class="avatar-mini"
                                                                             :src=message.message.user.avatar
@@ -210,6 +210,9 @@ export default {
             // this.$set(this.me, 'name', user.id.value.name)
             console.log(user.id.value.name)
           })
+          .bind('delete-message', message => {
+            console.log(message)
+          })
     },
 
     send() {
@@ -256,6 +259,7 @@ export default {
           msg: oldMessage.msg,
           ts: oldMessage.ts,
           user: oldMessage.user,
+          _id: oldMessage._id,
         }
         this.messages.unshift({
           message,
@@ -308,9 +312,26 @@ export default {
       } else {
         await this.$router.replace({params: {id: this.me.id, user: this.answer.value.name}});
       }
-
     },
+    async deleteMessage(id) {
+      const query = {
+        _id: id,
 
+      };
+      let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/delete-message`, {
+        method: 'POST', // или 'PUT'
+        // mode: 'no-cors',
+        body: JSON.stringify(query), // данные могут быть 'строкой' или {объектом}!
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      this.answer = await response.json();
+      if (typeof this.answer['err'] !== 'undefined') {
+        return alert(this.answer.err)
+      }
+      else console.log(this.answer)
+    },
   },
 
 }
