@@ -175,7 +175,10 @@ export default {
             const isMember = this.members.findIndex(item => item.id === member.id)
             if (isMember !== -1)
               this.members.splice(isMember, 1)
-          });
+          })
+          .bind('change_name', user => {
+            console.log(user)
+          })
     },
 
     send() {
