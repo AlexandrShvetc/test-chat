@@ -21,7 +21,14 @@
           <ul id="scrollUl">
             <li class="lis" v-for="(message, index) in messages" :key="index"
                 :class="{ right: message.message.user.id === me.id}">
-              <b>{{ message.message.user.name }}</b>
+              <span>
+                <span class="hide">
+                  <button ><b-icon-pen></b-icon-pen></button>
+                <button ><b-icon-trash></b-icon-trash></button>
+                </span>
+                <b class="my-order">{{ message.message.user.name }}</b><img class="avatar-mini"
+                                                                            :src=message.message.user.avatar
+                                                                            alt=""></span>
               <br>
               {{ message.message.msg }}
               <br>
@@ -75,9 +82,24 @@ export default {
   name: "VChat",
   components: {},
   data: () => ({
-    me: {},
-    members: [],
-    messages: [],
+    me: {
+      name: '',
+    },
+    members: [{
+      name: '',
+    }],
+    messages: [{
+      message: {
+        msg: '',
+        ts: '',
+        user: {
+          avatar: '',
+          id: '',
+          name: '',
+        },
+      },
+      ts: '',
+    }],
     tooltip: {},
     testMessages: '',
     draft: '',
@@ -94,6 +116,7 @@ export default {
     this.me.id = this.$route.params.id;
     this.me.name = this.$route.params.user;
     this.me.avatar = faker.image.avatar();
+    this.messages.splice(0, 1)
     // this.getMessages(this.messages.length)
   },
   mounted() {
@@ -152,7 +175,7 @@ export default {
           ts: new Date(+obj.message.ts)
           // ts: new Date(obj.message.ts).toUTCString(),
         })
-        setTimeout(this.scrollToElement, 1000)
+        setTimeout(this.scrollToElement, 50)
       });
 
       this.presenceChannel
@@ -177,7 +200,15 @@ export default {
               this.members.splice(isMember, 1)
           })
           .bind('change_name', user => {
-            console.log(user)
+            if (this.me.id === user.id.value.id)
+              this.me.name = user.id.value.name
+            else {
+              const isMember = this.members.findIndex(item => item.id === user.id.value.id)
+              if (isMember !== -1)
+                this.members[isMember].name = user.id.value.name
+            }
+            // this.$set(this.me, 'name', user.id.value.name)
+            console.log(user.id.value.name)
           })
     },
 
@@ -231,8 +262,10 @@ export default {
           ts: new Date(oldMessage.ts).toUTCString(),
         })
       }
-      if (number === 0)
-        return setTimeout(this.scrollToElement, 1000)
+      if (number === 0) {
+        // this.messages.splice(10, 1)
+        return setTimeout(this.scrollToElement, 50)
+      }
       console.log(scrollEl.scrollHeight)
     },
 
@@ -273,22 +306,7 @@ export default {
       if (typeof this.answer['err'] !== 'undefined') {
         return alert(this.answer.err)
       } else {
-        // this.me.name = await this.answer.value.name
         await this.$router.replace({params: {id: this.me.id, user: this.answer.value.name}});
-        this.$router.go(0);
-
-        // setTimeout(this.setNewName, 1000)
-        // this.me.name = await this.answer.value.name
-        // this.$nextTick(() => {
-        //   // this.me.name = this.answer.value.name
-        //   this.setNewName()
-        // });
-        // await this.$router.replace({params: {id: this.me.id, user: this.me.name}});
-        //   let url = new URL(window.location)
-        //   let params = new URLSearchParams(url.search)
-        //   params.set(``, `${this.me.name}`);
-        //   url.search = params
-        //   history.replaceState({}, '', url)
       }
 
     },
@@ -317,10 +335,21 @@ li {
 }
 
 .right {
+  position: relative;
   left: 20%;
   text-align: right;
   background-color: greenyellow;
+}
 
+.hide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+}
+
+.right:hover .hide {
+  visibility: visible;
 }
 
 .chat {
@@ -367,6 +396,17 @@ li {
   width: 50px;
   height: 50px;
   border-radius: 50px;
+}
+
+.avatar-mini {
+  width: 25px;
+  height: 25px;
+  border-radius: 25px;
+  order: 2;
+}
+
+.my-order {
+  order: 1;
 }
 
 .members {
