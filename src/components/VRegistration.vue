@@ -41,6 +41,7 @@ import {faker} from '@faker-js/faker'
 
 const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
 
+// const AUTH_ENDPOINT = 'http://localhost:3030';
 
 export default {
   name: "VRegistration",

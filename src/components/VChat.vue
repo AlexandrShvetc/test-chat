@@ -23,7 +23,7 @@
                 :class="{ right: message.message.user.id === me.id}">
               <span>
                 <span class="hide">
-                  <button @click.stop.prevent=""><b-icon-pen></b-icon-pen></button>
+                  <v-edit-message :obj="message.message"/>
                 <button @click.stop.prevent="deleteMessage(message.message._id)"><b-icon-trash></b-icon-trash></button>
                 </span>
                 <b class="my-order">{{ message.message.user.name }}</b><img class="avatar-mini"
@@ -74,13 +74,15 @@
 <script>
 import {faker} from '@faker-js/faker'
 import Pusher from "pusher-js";
+import VEditMessage from "@/components/VEditMessage";
 // import qs from 'querystring';
 
 const AUTH_ENDPOINT = 'https://cheap-deep-chat.herokuapp.com';
 
+// const AUTH_ENDPOINT = 'http://localhost:3030';
 export default {
   name: "VChat",
-  components: {},
+  components: {VEditMessage},
   data: () => ({
     me: {
       name: '',
@@ -103,6 +105,7 @@ export default {
     tooltip: {},
     testMessages: '',
     draft: '',
+    editedMessage: '',
     pusher: null,
     channel: null,
     presenceChannel: null,
@@ -211,6 +214,19 @@ export default {
             console.log(user.id.value.name)
           })
           .bind('delete-message', message => {
+            const isMessage = this.messages.findIndex(item => item.message._id === message._id)
+            if (isMessage !== -1) {
+              this.messages[isMessage].message.msg = `ЦЕ ПОВІДОМЛЕННЯ БУЛО ВИДАЛЕНЕ КОРИТСУВАЧЕМ ${this.messages[isMessage].message.user.name}`
+              this.messages[isMessage].message.user.name = ''
+              this.messages[isMessage].message.user.avatar = ''
+            }
+            console.log(message)
+          })
+          .bind('edit-message', message => {
+            const isMessage = this.messages.findIndex(item => item.message._id === message.id.value._id)
+            if (isMessage !== -1) {
+              this.messages[isMessage].message.msg = message.id.value.msg
+            }
             console.log(message)
           })
     },
@@ -316,7 +332,6 @@ export default {
     async deleteMessage(id) {
       const query = {
         _id: id,
-
       };
       let response = await fetch(`${AUTH_ENDPOINT}/pusher/auth/delete-message`, {
         method: 'POST', // или 'PUT'
@@ -329,9 +344,9 @@ export default {
       this.answer = await response.json();
       if (typeof this.answer['err'] !== 'undefined') {
         return alert(this.answer.err)
-      }
-      else console.log(this.answer)
+      } else console.log(this.answer)
     },
+
   },
 
 }
