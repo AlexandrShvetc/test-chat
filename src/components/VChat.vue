@@ -32,7 +32,7 @@
               <br>
               {{ message.message.msg }}
               <br>
-              <span class="time">
+              <span class="time" :id="message.message.ts">
                 <timeago :datetime="message.ts" :auto-update="20"/>
                 <span class="my-tooltip">{{ message.ts }}</span>
               </span>
@@ -226,6 +226,10 @@ export default {
             const isMessage = this.messages.findIndex(item => item.message._id === message.id.value._id)
             if (isMessage !== -1) {
               this.messages[isMessage].message.msg = message.id.value.msg
+              const edit = document.getElementById(`${message.id.value.ts}`)
+              const oldHTML = edit.innerHTML
+              const newHtml = `${oldHTML} edited`
+              edit.innerHTML = newHtml
             }
             console.log(message)
           })
@@ -330,6 +334,11 @@ export default {
       }
     },
     async deleteMessage(id) {
+      const isMessage = this.messages.findIndex(item => item.message._id === id)
+      if (isMessage !== -1){
+        if (this.messages[isMessage].message.user.name === '')
+          return alert('не можна видаляти видалене')
+      }
       const query = {
         _id: id,
       };

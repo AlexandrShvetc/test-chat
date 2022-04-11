@@ -33,15 +33,20 @@ export default {
     editedMessage: '',
     answer: '',
   }),
-  props:{
+  props: {
     obj: {},
   },
   methods: {
     showModal() {
+      if (this.obj.user.name === '')
+        return alert('не можна редагувати видалене')
+
       this.editedMessage = this.obj.msg
       this.$bvModal.show(`${this.obj._id}`)
     },
-    async editMessage(){
+    async editMessage() {
+
+
       const query = {
         _id: this.obj._id,
         msg: this.editedMessage,
