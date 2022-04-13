@@ -45,8 +45,6 @@ export default {
       this.$bvModal.show(`${this.obj._id}`)
     },
     async editMessage() {
-
-
       const query = {
         _id: this.obj._id,
         msg: this.editedMessage,
@@ -61,6 +59,8 @@ export default {
       })
       this.answer = await response.json();
       console.log(this.answer)
+      const element = document.getElementById('chat');
+      this.$emit('editScroll',element.scrollTop)
     },
   },
 }

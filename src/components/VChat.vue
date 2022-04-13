@@ -23,7 +23,8 @@
                 :class="{ right: message.message.user.id === me.id}">
               <span>
                 <span class="hide">
-                  <v-edit-message :obj="message.message"/>
+<!--                   @editScroll="myScroll"-->
+                  <v-edit-message :obj="message.message" @editScroll="myScroll"/>
                 <button @click.stop.prevent="deleteMessage(message.message._id)"><b-icon-trash></b-icon-trash></button>
                 </span>
                 <b class="my-order">{{ message.message.user.name }}</b><img class="avatar-mini"
@@ -111,6 +112,8 @@ export default {
     presenceChannel: null,
     newName: '',
     answer: '',
+    localHeight: '',
+    scrollPosition: '',
   }),
   beforeCreate() {
     // this.getMessages(this.messages.length)
@@ -129,29 +132,40 @@ export default {
     // this.scrollToElement()
   },
   beforeUpdate() {
-    // this.me.name = this.$route.params.user;
-    // this.scrollToElement()
   },
-  // beforeRouteUpdate(){
-  //   this.me.name = this.$route.params.user;
-  // },
-  // watch: {
-  //   '$route.params.user': {
-  //     handler: function (user) {
-  //       this.me.name = user
-  //     },
-  //     deep: true,
-  //     immediate: true
-  //   }
-  // },
+  updated() {
+    // const element = document.getElementById('chat');
+    // if (element.scrollHeight !== this.localHeight)
+    //   element.scrollTop = element.scrollHeight - this.localHeight;
+  },
   methods: {
+    onResize() {
+      const element = document.getElementById('chat');
+      if (element.scrollHeight > this.localHeight)
+        element.scrollTop = element.scrollHeight - this.localHeight;
+      console.log(element.scrollHeight, this.localHeight)
+    },
+
+    onEditScroll() {
+      const element = document.getElementById('chat');
+      if (element.scrollHeight > this.localHeight)
+        element.scrollTop = element.scrollHeight - (element.scrollHeight - this.localHeight);
+      console.log(element.scrollHeight, this.localHeight)
+    },
+
+    myScroll(data) {
+      this.scrollPosition = data;
+      // setTimeout(this.onEditScroll, 50)
+      console.log('resize')
+    },
     scrollToElement() {
       const element = document.getElementById('chat');
+      this.localHeight = element.scrollHeight;
       element.scrollTop = element.scrollHeight;
+      console.log(element.scrollHeight)
     },
     pusherConnetcion() {
       Pusher.logToConsole = true;
-      // const timestamp = new Date().toISOString();
       this.pusher = new Pusher('94db23f60a72fb315a70', {
         broadcaster: 'pusher',
         app_id: "1364833",
@@ -176,9 +190,9 @@ export default {
         this.messages.push({
           ...obj,
           ts: new Date(+obj.message.ts)
-          // ts: new Date(obj.message.ts).toUTCString(),
         })
-        setTimeout(this.scrollToElement, 50)
+        // this.scrollToElement()
+        setTimeout(this.scrollToElement, 5)
       });
 
       this.presenceChannel
@@ -228,9 +242,17 @@ export default {
               this.messages[isMessage].message.msg = message.id.value.msg
               const edit = document.getElementById(`${message.id.value.ts}`)
               const oldHTML = edit.innerHTML
-              const newHtml = `${oldHTML} edited`
-              edit.innerHTML = newHtml
+              edit.innerHTML = `${oldHTML} edited`
             }
+            if (this.me.id === message.id.value.user.id){
+              const element = document.getElementById('chat');
+              if (element.scrollHeight === element.scrollTop)
+                setTimeout(this.scrollToElement, 50)
+            }
+
+            // const element = document.getElementById('chat');
+            // element.scrollTop = this.scrollPosition
+            // setTimeout(this.onEditScroll, 50)
             console.log(message)
           })
     },
@@ -257,12 +279,11 @@ export default {
         console.log("Booo");
       });
       this.draft = '';
-      // this.scrollToElement()
     },
 
     async getMessages(number) {
       const scrollEl = document.getElementById('chat')
-      console.log(scrollEl.scrollHeight)
+      // console.log(scrollEl.scrollHeight)
       const query = {
         qtty: number
       }
@@ -285,23 +306,27 @@ export default {
           message,
           ts: new Date(oldMessage.ts).toUTCString(),
         })
+        setTimeout(this.onResize, 50)
+
       }
       if (number === 0) {
-        // this.messages.splice(10, 1)
-        return setTimeout(this.scrollToElement, 50)
+        return setTimeout(this.scrollToElement, 5)
       }
-      console.log(scrollEl.scrollHeight)
+      // console.log(scrollEl.scrollHeight)
+      return scrollEl.scrollHeight
     },
 
     async updateByScroll() {
       const scrollEl = document.getElementById('chat')
       scrollEl.addEventListener('scroll', () => {
         let scrollPosition = scrollEl.scrollTop
+        // console.log(scrollEl.scrollHeight)
         if (scrollPosition === 0) {
+          this.localHeight = scrollEl.scrollHeight
           this.getMessages(this.messages.length)
-          // console.log(scrollEl.scrollTop, this.messages.length)
+          setTimeout(this.onResize, 50)
         }
-        // console.log(scrollEl.scrollTop)
+        console.log(scrollEl.scrollHeight)
       })
     },
 
@@ -335,7 +360,7 @@ export default {
     },
     async deleteMessage(id) {
       const isMessage = this.messages.findIndex(item => item.message._id === id)
-      if (isMessage !== -1){
+      if (isMessage !== -1) {
         if (this.messages[isMessage].message.user.name === '')
           return alert('не можна видаляти видалене')
       }
@@ -354,6 +379,10 @@ export default {
       if (typeof this.answer['err'] !== 'undefined') {
         return alert(this.answer.err)
       } else console.log(this.answer)
+      // this.scrollToElement()
+      const element = document.getElementById('chat');
+      if (element.scrollHeight === element.scrollTop)
+        setTimeout(this.scrollToElement, 50)
     },
 
   },
