@@ -242,6 +242,7 @@ export default {
               this.messages[isMessage].message.msg = message.id.value.msg
               const edit = document.getElementById(`${message.id.value.ts}`)
               const oldHTML = edit.innerHTML
+              if (!oldHTML.toString().includes('edited'))
               edit.innerHTML = `${oldHTML} edited`
             }
             if (this.me.id === message.id.value.user.id){
@@ -249,10 +250,6 @@ export default {
               if (element.scrollHeight === element.scrollTop)
                 setTimeout(this.scrollToElement, 50)
             }
-
-            // const element = document.getElementById('chat');
-            // element.scrollTop = this.scrollPosition
-            // setTimeout(this.onEditScroll, 50)
             console.log(message)
           })
     },
