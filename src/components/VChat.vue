@@ -225,6 +225,10 @@ export default {
                 this.members[isMember].name = user.id.value.name
             }
             // this.$set(this.me, 'name', user.id.value.name)
+            this.messages.forEach(message => {
+              if (message.message.user.id === user.id.value.id)
+                message.message.user.name = user.id.value.name
+            })
             console.log(user.id.value.name)
           })
           .bind('delete-message', message => {
@@ -243,9 +247,9 @@ export default {
               const edit = document.getElementById(`${message.id.value.ts}`)
               const oldHTML = edit.innerHTML
               if (!oldHTML.toString().includes('edited'))
-              edit.innerHTML = `${oldHTML} edited`
+                edit.innerHTML = `${oldHTML} edited`
             }
-            if (this.me.id === message.id.value.user.id){
+            if (this.me.id === message.id.value.user.id) {
               const element = document.getElementById('chat');
               if (element.scrollHeight === element.scrollTop)
                 setTimeout(this.scrollToElement, 50)
