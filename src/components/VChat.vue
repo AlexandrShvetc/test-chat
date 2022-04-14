@@ -237,6 +237,7 @@ export default {
               this.messages[isMessage].message.msg = `ЦЕ ПОВІДОМЛЕННЯ БУЛО ВИДАЛЕНЕ КОРИТСУВАЧЕМ ${this.messages[isMessage].message.user.name}`
               this.messages[isMessage].message.user.name = ''
               this.messages[isMessage].message.user.avatar = ''
+              this.messages[isMessage].message.user.id = ''
             }
             console.log(message)
           })
